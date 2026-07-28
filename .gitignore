@@ -1,0 +1,127 @@
+# AWS CLI
+.awsconfig
+
+# AWS CloudFormation
+.cloudformation/
+
+# AWS CloudFront
+.cloudfront/
+
+# AWS CodeDeploy
+codedeploy/
+
+# AWS CodePipeline
+pipelines/
+
+# AWS Lambda
+.lambda/
+
+# AWS S3
+.s3deploy/
+
+# AWS SNS
+sns/
+
+# AWS SQS
+sqs/
+
+# AWS EC2
+.ec2/
+
+# AWS Elastic Beanstalk
+elasticbeanstalk/
+
+# AWS Elastic Load Balancer
+elasticloadbalancer/
+
+# AWS IAM
+credentials/
+
+# AWS RDS
+rds/
+
+# AWS Route 53
+route53/
+
+# AWS Simple Notification Service (SNS)
+sns/
+
+# AWS Simple Queue Service (SQS)
+sqs/
+
+# AWS WAF
+waf/
+
+# AWS X-Ray
+xray/
+
+# AWS SDKs
+aws-sdk-*
+
+# AWS CLI artifacts
+.artifacts/
+
+# AWS CloudFormation template files
+*.template.json
+*.template.yml
+
+# AWS CloudFront cache behavior configuration files
+*.cache-policy
+
+# AWS CodeDeploy deployment configuration files
+codedeploy-config.json
+codedeploy-config.yml
+
+# AWS CodePipeline pipeline configuration files
+pipeline.json
+pipeline.yml
+
+# AWS Lambda deployment packages
+dist/
+build/
+*.zip
+*.war
+*.jar
+
+# AWS SNS subscription confirmation requests
+*.mhub
+*.sub
+
+# AWS SQS message receipts
+*.receipt
+*.receipt-handle
+
+# AWS EC2 metadata files
+*.meta
+
+# AWS Elastic Beanstalk environment configuration files
+.env
+
+# AWS Elastic Load Balancer listener configuration files
+*.listener
+
+# AWS IAM policy files
+*.policy
+
+# AWS RDS event notification subscription configuration files
+*.rds
+
+# AWS Route 53 health check configuration files
+*.healthcheck
+
+# AWS Simple Notification Service (SNS) subscription confirmation requests
+*.sub
+
+# AWS Simple Queue Service (SQS) message receipts
+*.receipt
+*.receipt-handle
+
+# AWS Simple Storage Service (S3) deployment configuration files
+.s3deploy
+
+# AWS WAF web ACL configuration files
+*.acl
+
+# AWS X-Ray tracing configuration files
+xray-config.json
+xray-config.yml
