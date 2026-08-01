@@ -125,3 +125,6 @@ build/
 # AWS X-Ray tracing configuration files
 xray-config.json
 xray-config.yml
+
+# log files
+*.log
