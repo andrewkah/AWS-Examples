@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+echo "Putting an object in a bucket, Please wait..."
+
+# check for the aws command
+if ! command -v aws &> /dev/null;  then
+    echo "aws cli not found"
+    exit 1
+fi
+# check for bucket
+BUCKET_NAME=$1
+if [ -z "$BUCKET_NAME" ]; then
+    echo "Bucket name not provided!"
+    exit 1
+fi
+# check for filename
+FILENAME=$2
+if [ -z "$FILENAME" ]; then
+    echo "File name not provided!"
+    exit 1
+fi
+
+# get object key from filename
+OBJECT_KEY=$(basename "$FILENAME")
+# put the object in the bucket
+OUTPUT=$(aws s3api put-object --bucket "$BUCKET_NAME" --key "$OBJECT_KEY" --body "$FILENAME" 2>&1)
+
+if [ $? -eq 0 ]; then
+    echo "$OUTPUT"
+    echo "Object $OBJECT_KEY has been put in bucket $BUCKET_NAME"
+    exit 0
+elif echo "$OUTPUT" | grep -q "AccessDenied"; then
+    echo "Access Denied: $OUTPUT"
+    exit 1
+else
+    echo "Error pushing object: $OUTPUT"
+    exit 1
+fi
