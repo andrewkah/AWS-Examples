@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+echo "Deleting bucket $1..."
+# Check for the aws command
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli not found"
+    exit 1
+fi
+
+BUCKET_NAME=$1
+# Check if a bucket name is provided
+if [ -z "$BUCKET_NAME" ]; then
+    echo "No bucket name provided"
+    exit 1
+fi
+
+# Check if the bucket exists
+if ! aws s3api head-bucket --bucket "$BUCKET_NAME" &> /dev/null; then
+    echo "Bucket $1 does not exist"
+    exit 1
+fi
+
+# Delete the bucket
+OUTPUT=$(aws s3api delete-bucket --bucket "$BUCKET_NAME" 2>&1)
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+    echo "Bucket name: $BUCKET_NAME"
+    echo "Bucket $1 deleted successfully"
+    exit 0
+elif echo "$OUTPUT" | grep -q "AccessDenied"; then
+    echo "Access Denied: $OUTPUT"
+    exit 1
+elif echo "$OUTPUT" | grep -q "NoSuchBucket"; then
+    echo "Bucket does not exist: $OUTPUT"
+    exit 1
+else
+    echo "Error deleting bucket $1: $OUTPUT"
+    exit 1
+fi

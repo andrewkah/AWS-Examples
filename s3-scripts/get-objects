@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+echo "Retrieving bucket object..."
+
+# Check for the aws command
+if ! command -v aws &> /dev/null; then
+    echo "aws cli not found"
+    exit 1
+fi
+
+BUCKET_NAME=$1
+OBJECT_KEY=$2
+OUTPUT_FILE=$3
+# Check for the bucket 
+if [ -z "$BUCKET_NAME" ]; then
+    echo "No bucket name has been provided"
+    exit 1
+fi
+# Check for the object key
+if [ -z "$OBJECT_KEY" ]; then
+    echo 'No object key provided'
+    exit 1
+fi
+
+# Check for the output file
+if [ -z "$OUTPUT_FILE" ]; then
+    echo 'No output file provided'
+    exit 1
+fi
+
+# Retrieve object
+OUTPUT=$(aws s3api get-object --bucket "$BUCKET" \
+--key "$OBJECT_KEY" "$OUTPUT_FILE" 2>&1)
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+    echo "Creating Object for the bucket: $BUCKET_NAME"
+    echo "Object created successfully."
+    exit 0
+elif echo "$OUTPUT" | grep -q "AccessDenied"; then
+    echo "Access Denied: $OUTPUT"
+    exit 1
+elif echo "$OUTPUT" | grep -q "NoSuchBucket"; then
+    echo "Bucket does not exist: $OUTPUT"
+    exit 1
+else
+    echo "Error retrieving object: $OUTPUT"
+    exit 1
+fi
