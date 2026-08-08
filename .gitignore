@@ -128,3 +128,6 @@ xray-config.yml
 
 # log files
 *.log
+
+# Python env files
+.venv
