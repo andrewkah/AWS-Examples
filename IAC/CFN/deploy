@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+echo "Deploying stack..."
+# Check if the command is present
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli not found"
+    exit 1
+fi
+read -p "Please provide a stack name: " STACK_NAME
+if [ -z "$STACK_NAME" ]; then
+    echo "No stack name provided"
+    exit 1
+fi
+echo "Please wait..."
+
+aws cloudformation deploy --template-file template.yaml --region us-east-1 --stack-name $STACK_NAME
