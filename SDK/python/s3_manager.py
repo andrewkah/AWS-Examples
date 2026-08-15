@@ -37,11 +37,29 @@ class S3Manager:
     def upload_file(self, bucket_name, local_path, object_key):
         try:
             print('Please wait...')
-            response = self.s3_client.upload_file(local_path, bucket_name, object_key)
+            response = self.s3_client.put_object(Body=open(local_path, "rb"), Bucket=bucket_name, Key=object_key)
             print(f"Uploaded '{local_path}' to bucket '{bucket_name}' as '{object_key}'")
             return response
         except ClientError as e:
             print(f"Error occurred while uploading file to bucket '{bucket_name}': {e}")
+    
+    def get_object_metadata(self, bucket_name, object_key):
+        try:
+            print('Please wait...')
+            response = self.s3_client.head_object(Bucket=bucket_name, Key=object_key)
+            return response
+        except ClientError as e:
+            print(f"Error occurred while getting metadata for object '{object_key}' in bucket '{bucket_name}': {e}")
+            return None
+        
+    def add_object_prefix(self, bucket_name, object_key, prefix):
+        try:
+            print('Please wait...')
+            response = self.s3_client.copy_object(Bucket=bucket_name, Key=prefix + object_key, CopySource={'Bucket': bucket_name, 'Key': object_key})
+            print(f"Added prefix '{prefix}' to object '{object_key}' in bucket '{bucket_name}'")
+            return response
+        except ClientError as e:
+            print(f"Error occurred while adding prefix to object '{object_key}' in bucket '{bucket_name}': {e}")
             
     # CREATING A BUCKET
     def create_bucket(self, bucket_name):
@@ -104,14 +122,16 @@ if __name__ == "__main__":
         5: s3_manager.delete_bucket_objects,
         6: s3_manager.upload_file,
         7: s3_manager.update_object_metadata,
+        8: s3_manager.add_object_prefix
     }
     keys = list(s3_functions.keys())
     # introduce this script and ask for the bucket name
     print(f"Welcome to the S3 Manager script, where you can create, view and delete buckets and their objects.\nPlease choose the operation you intend to carry out!")
-    print(f"1: List buckets\n2: List objects in a bucket\n3: Create a bucket\n4: Delete a bucket\n5: Delete objects from a bucket\n6: Upload a file\n7: Update object metadata")
+    print(f"1: List buckets\n2: List objects in a bucket\n3: Create a bucket\n4: Delete a bucket\n5: Delete objects from a bucket\n6: Upload a file\n7: Update object metadata\n8: Add prefix to an object")
     choice = int(input("Enter the number corresponding to your choice: "))
     if choice in keys:
-        if choice in [2, 3, 4, 5, 6]:
+        if choice in [2, 3, 4, 5, 6, 7, 8]:
+            # ask for the bucket name
             bucket_name = input("Enter the bucket name: ")
             if choice in [2, 4, 5]:
                 # check if the bucket exists
@@ -131,6 +151,10 @@ if __name__ == "__main__":
                 metadata_input = input("Enter metadata as key1=value1,key2=value2,...: ")
                 metadata = dict(item.split("=") for item in metadata_input.split(","))
                 s3_functions[choice](bucket_name, object_key, metadata)
+            elif choice == 8:
+                object_key = input("Enter the object key: ")
+                prefix = input("Enter the prefix to add: ")
+                s3_functions[choice](bucket_name, object_key, prefix)
         else:
             response = s3_functions[choice]()
             print("Buckets in your account:")

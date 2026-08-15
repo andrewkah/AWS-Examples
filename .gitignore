@@ -131,6 +131,10 @@ xray-config.yml
 
 # Python env files
 .venv
+
+# Python caches
+__pycache__
+
 # ------------------------------------------------------------------------
 # Terraform Core Directory
 # ------------------------------------------------------------------------
@@ -182,3 +186,4 @@ node_modules
 cdk.out
 # Ignore lock files
 terraform.lock.hcl
+ 
