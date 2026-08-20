@@ -1,5 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
+import urllib.parse
 
 class S3Manager:
     def __init__(self, region_name = 'us-east-1'):
@@ -10,7 +11,8 @@ class S3Manager:
         try:
             print('Please wait...')
             response = self.s3_client.list_buckets()
-            return response
+            for bucket in response.get('Buckets', []):
+                print(f" - {bucket['Name']}")
         except ClientError as e:
             print(f"Error occurred while listing buckets: {e}")
             return []
@@ -19,7 +21,7 @@ class S3Manager:
             print('Please wait...')
             response = self.s3_client.list_objects_v2(Bucket=bucket_name)
             if not any(response.get('Contents', [])):
-                print(f"No objects found in bucket '{bucket_name}'")
+                print(f"No objects  found in bucket '{bucket_name}'")
                 exit()
             print(f"Objects in bucket '{bucket_name}':")
             for obj in response.get('Contents', []):
@@ -74,6 +76,14 @@ class S3Manager:
         except ClientError as e:
             print(f"Error occurred while creating bucket '{bucket_name}': {e}")
             return None
+    def change_storage_class(self, bucket_name, object_key, target_class):
+        try:
+            print("Please wait...")
+            response = self.s3_client.copy_object(Bucket=bucket_name, Key=object_key, CopySource={'Bucket': bucket_name, 'Key': object_key}, StorageClass=target_class, MetadataDirective='COPY')
+            print(f"Bucekt '{bucket_name}' is now of storage type '{target_class}'")
+            return response
+        except ClientError as e:
+            print(f"Error occurred while changing storage class: {e}")
     
     # DELETING A BUCKET
     def delete_bucket(self, bucket_name):
@@ -111,7 +121,27 @@ class S3Manager:
             print(f"Metadata for object '{object_key}' in bucket '{bucket_name}' updated successfully.")
         except ClientError as e:
             print(f"Error occurred while updating metadata for object '{object_key}' in bucket '{bucket_name}': {e}")
-            
+    
+    # DELETING AN OBJECT
+    def delete_object(self, bucket_name, object_key):
+        try:
+            print('Please wait...')
+            response = self.s3_client.delete_object(Bucket=bucket_name, Key=object_key)
+            print(f"Object '{object_key}' deleted from bucket '{bucket_name}'")
+            return response
+        except ClientError as e:
+            print(f"Error occurred while deleting object '{object_key}' from bucket '{bucket_name}': {e}")
+            return None
+    # Object Locking
+    def enable_object_locking(self, bucket_name):
+        try:
+            print('Please wait...')
+            response = self.s3_client.put_object_lock_configuration(Bucket=bucket_name, ObjectLockConfiguration={'ObjectLockEnabled': 'Enabled'})
+            print(f"Object locking enabled for bucket '{bucket_name}'")
+            return response
+        except ClientError as e:
+            print(f"Error occurred while enabling object locking for bucket '{bucket_name}': {e}")
+            return None
 if __name__ == "__main__":
     s3_manager = S3Manager()
     s3_functions = {
@@ -156,9 +186,7 @@ if __name__ == "__main__":
                 prefix = input("Enter the prefix to add: ")
                 s3_functions[choice](bucket_name, object_key, prefix)
         else:
-            response = s3_functions[choice]()
             print("Buckets in your account:")
-            for bucket in response.get('Buckets', []):
-                print(f" - {bucket['Name']}")
+            response = s3_functions[choice]()
     else:
         print("Invalid choice. Please try again.")        
