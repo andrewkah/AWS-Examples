@@ -103,6 +103,9 @@ build/
 # AWS IAM policy files
 *.policy
 
+# AWS S3 bucket policy files
+*.policy.json
+
 # AWS RDS event notification subscription configuration files
 *.rds
 
