@@ -103,6 +103,9 @@ build/
 # AWS IAM policy files
 *.policy
 
+# AWS S3 bucket policy files
+*.policy.json
+
 # AWS RDS event notification subscription configuration files
 *.rds
 
@@ -131,6 +134,10 @@ xray-config.yml
 
 # Python env files
 .venv
+
+# Python caches
+__pycache__
+
 # ------------------------------------------------------------------------
 # Terraform Core Directory
 # ------------------------------------------------------------------------
@@ -182,3 +189,4 @@ node_modules
 cdk.out
 # Ignore lock files
 terraform.lock.hcl
+ 
