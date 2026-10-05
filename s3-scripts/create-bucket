@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+echo "Creating bucket $1..."
+
+# check for aws cli
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli not found"
+    exit 1
+fi
+
+# check if a bucket name is provided
+if [ -z "$1" ]; then
+    echo "No bucket name provided"
+    exit 1
+fi
+
+# set bucket name
+BUCKET_NAME=$1
+
+# set region
+AWS_DEFAULT_REGION="us-east-1"
+
+# create bucket
+# https://docs.aws.amazon.com/cli/latest/reference/s3api/create-bucket.html
+OUTPUT=$(aws s3api create-bucket --bucket "$BUCKET_NAME" \
+--region "$AWS_DEFAULT_REGION" --output text 2>&1)
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+    echo "Bucket name: $BUCKET_NAME"
+    echo "Region: $AWS_DEFAULT_REGION"
+    echo "Bucket $BUCKET_NAME created successfully: $OUTPUT"
+    exit 0
+elif echo "$OUTPUT" | grep -q "BucketAlreadyOwnedByYou"; then
+    echo "Bucket $BUCKET_NAME already exists"
+    exit 0
+elif echo "$OUTPUT" | grep -q "BucketAlreadyExists"; then
+    echo "Bucket $BUCKET_NAME already exists"
+    exit 0
+else
+    echo "Error creating bucket $BUCKET_NAME: $OUTPUT"
+    exit 1
+fi

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+echo "Deleting an object from a bucket..."
+
+# check for the aws command
+if ! command -v aws &> /dev/null;  then
+    echo "aws cli not found"
+    exit 1
+fi
+# check for bucket
+BUCKET_NAME=$1
+if [ -z "$BUCKET_NAME" ]; then
+    echo "Bucket name not provided!"
+    exit 1
+fi
+
+# check for bucket objects
+aws s3api list-objects --bucket "$BUCKET_NAME" --query 'Contents[].Key' \
+| jq -n '{"Objects": [inputs | .[] | {Key: .} ]}' > "tmp/bucket-objects.json"
+
+
+OUTPUT=$(aws s3api delete-object --bucket "$BUCKET_NAME" --delete "file:///tmp/bucket-objects.json" 2>&1)
+if [ $? -eq 0 ]; then
+    echo "Object $OBJECT_KEY has been deleted from bucket $BUCKET_NAME"
+    echo "Done"
+    exit 0
+elif echo "$OUTPUT" | grep -q "AccessDenied"; then
+    echo "Access Denied: $OUTPUT"
+    exit 1
+elif echo "$OUTPUT" | grep -q "NoSuchBucket"; then
+    echo "Bucket does not exist: $OUTPUT"
+    exit 1
+elif echo "$OUTPUT" | grep -q "NoSuchKey"; then
+    echo "Object does not exist: $OUTPUT"
+    exit 1
+else
+    echo "Error deleting object: $OUTPUT"
+    exit 1
+fi

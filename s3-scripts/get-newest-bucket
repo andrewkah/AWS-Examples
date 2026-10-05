@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+echo "Getting the newest bucket..."
+
+# check for the aws command
+if ! command -v aws &> /dev/null;  then
+    echo "aws cli not found"
+    exit 1
+fi
+# check for the jq command
+if ! command -v jq &> /dev/null;  then
+    echo "jq not found"
+    exit 1
+fi
+
+# get the newest bucket
+bucket=$(aws s3api list-buckets | jq -r '.Buckets | sort_by(.CreationDate) | reverse | .[0].Name')
+echo "Newest bucket is: $bucket"

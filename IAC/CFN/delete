@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+echo "Deleting stack $1..."
+# Check if the command is present
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli not found"
+    exit 1
+fi
+# Check the input
+if [ -z "$1" ]; then
+    echo "No stack name provided"
+    exit 1
+fi
+aws cloudformation delete-stack --stack-name $1 --region us-east-1

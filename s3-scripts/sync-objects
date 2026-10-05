@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+echo "Syncing the objects in a bucket..."
+
+# Set the script to exit immediately if any command fails
+set -e
+# check for the aws command
+if ! command -v aws &> /dev/null;  then
+    echo "aws cli not found"
+    exit 1
+fi
+# check for bucket
+BUCKET_NAME=$1
+if [ -z "$BUCKET_NAME" ]; then
+    echo "Bucket name not provided!"
+    exit 1
+fi
+# check for filename prefix
+FILENAME_PREFIX=$2
+if [ -z "$FILENAME_PREFIX" ]; then
+    echo "File name not provided!"
+    exit 1
+fi
+
+# create the output directory if it doesn't exist
+OUTPUT_DIR="tmp/s3-bash-scripts"
+
+# remove folder if it already exists
+if [ -d "$OUTPUT_DIR" ]; then
+    rm -rf "$OUTPUT_DIR"
+fi
+# create output folder
+mkdir -p $OUTPUT_DIR
+# generate random number of files
+NUM_FILES=$((RANDOM % 6 + 4))
+
+for ((i=1; i<=NUM_FILES; i++)); do
+    # create a random file name
+    FILE_NAME="file_${FILENAME_PREFIX}_$i.txt"
+    # create a random file size between 1KB and 10KB
+    FILE_SIZE=$((RANDOM % 10240 + 1024))
+    # create a random file with the specified size
+    head -c "$FILE_SIZE" /dev/urandom > "$OUTPUT_DIR/$FILE_NAME"
+done
+
+tree $OUTPUT_DIR
+
+# sync bucket objects
+aws s3 sync $OUTPUT_DIR s3://$BUCKET_NAME/files

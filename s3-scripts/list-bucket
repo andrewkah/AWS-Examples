@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+echo "Listing newest buckets..."
+
+# check for the aws command
+if ! command -v aws &> /dev/null;  then
+    echo "aws cli not found"
+    exit 1
+fi
+
+# check for the jq command
+if ! command -v jq &> /dev/null;  then
+    echo "jq not found"
+    exit 1
+fi
+
+OUTPUT=$(aws s3api list-buckets 2>&1 | jq -r '.Buckets | sort_by(.CreationDate) | reverse | .[] | .Name' 2>&1)
+if [ $? -eq 0 ]; then
+    echo "$OUTPUT"
+    exit 0
+elif echo "$OUTPUT" | grep -q "AccessDenied"; then
+    echo "Access Denied: $OUTPUT"
+    exit 1
+else
+    echo "Error retrieving buckets: $OUTPUT"
+    exit 1
+fi

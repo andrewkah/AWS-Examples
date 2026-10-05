@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample CloudFormation template for s3 buckets
+Resources:
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-s3-bucket.html
+  IACBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+    # We don't need to supply a bucket name, AWS can generate a random one for us
+      BucketName: 'aws-examples-andrew-iac-20260809'
+      AccessControl: 'Private'
