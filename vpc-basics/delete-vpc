@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+echo "Deleting VPC and attached components..."
+
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli command is required"
+    exit 1
+fi
+# List the available VPCs
+./vpc-basics/list-vpc
+
+while [[ -z "$VPC_ID" ]]; do
+    read -rp "Please enter your VPC ID: " VPC_ID
+done
+
+# Detach the IGW if present
+IGW_ID=$(aws ec2 describe-internet-gateways \
+--filters "Name=attachment.vpc-id,Values=$VPC_ID" \
+--query "InternetGateways[0].InternetGatewayId" \
+--output text)
+
+if [ "$IGW_ID" != "None" ] && [ -n "$IGW_ID" ]; then
+    echo "Internet Gateway $IGW_ID is attached to $VPC_ID"
+    IGW_OUTPUT=$(aws ec2 detach-internet-gateway --internet_gateway_id "$IGW_ID" --vpc-id "$VPC_ID" --output text 2>&1)
+    IGW_STATUS=$?
+    if [ $IGW_STATUS -eq 0 ]; then
+        echo "IGW $IGW_ID deleted successfully: $IGW_OUTPUT"
+        exit 0
+    else
+        echo "Error deleting IGW $IGW_ID: $IGW_OUTPUT"
+        exit 1
+    fi
+else
+    echo "No Internet gateway is attached to $VPC_ID"
+fi
+
+# Delete the VPC
+OUTPUT=$(aws ec2 delete-vpc --vpc-id $VPC_ID --output text 2>&1)
+
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+    echo "VPC $VPC_ID  deleted successfully: $OUTPUT"
+    exit 0
+else
+    echo "Error deleting VPC $VPC_ID: $OUTPUT"
+    exit 1
+fi
