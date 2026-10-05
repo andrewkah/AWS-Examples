@@ -1,0 +1,7 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create a role to assume and create a resource we'll have access to
+Resources:
+  StsRole:
+    Type:
+    Properties:
+      
