@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-echo "Listing VPCs ..."
+echo "Listing VPCs..."
 
 if ! command -v aws &> /dev/null
 then

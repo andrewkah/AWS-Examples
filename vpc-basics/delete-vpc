@@ -14,27 +14,56 @@ while [[ -z "$VPC_ID" ]]; do
     read -rp "Please enter your VPC ID: " VPC_ID
 done
 
-# Detach the IGW if present
-IGW_ID=$(aws ec2 describe-internet-gateways \
+echo -e "===================================\nDetaching and Deleting attached Internet Gateways..."
+# Detach the IGW and delete if present
+for igw in $(aws ec2 describe-internet-gateways \
 --filters "Name=attachment.vpc-id,Values=$VPC_ID" \
---query "InternetGateways[0].InternetGatewayId" \
---output text)
+--query "InternetGateways[].InternetGatewayId" \
+--output text); do
+    aws ec2 detach-internet-gateway --internet-gateway-id "$igw" --vpc-id "$VPC_ID" --output text 2>&1
+    aws ec2 delete-internet-gateway --internet-gateway-id "$igw" --output text 2>&1
+done
 
-if [ "$IGW_ID" != "None" ] && [ -n "$IGW_ID" ]; then
-    echo "Internet Gateway $IGW_ID is attached to $VPC_ID"
-    IGW_OUTPUT=$(aws ec2 detach-internet-gateway --internet_gateway_id "$IGW_ID" --vpc-id "$VPC_ID" --output text 2>&1)
-    IGW_STATUS=$?
-    if [ $IGW_STATUS -eq 0 ]; then
-        echo "IGW $IGW_ID deleted successfully: $IGW_OUTPUT"
-        exit 0
-    else
-        echo "Error deleting IGW $IGW_ID: $IGW_OUTPUT"
-        exit 1
-    fi
-else
-    echo "No Internet gateway is attached to $VPC_ID"
-fi
+echo -e "===================================\nDeleting the route table associations..."
+# Delete the route table association
+for rta in $(aws ec2 describe-route-tables \
+--filters "Name=vpc-id,Values=$VPC_ID" \
+--query "RouteTables[].Associations[].RouteTableAssociationId" \
+--output text); do
+    aws ec2 disassociate-route-table --association-id "$rta" --output text 2>&1
+done
 
+echo -e "===================================\nDeleting attached subnets..."
+# Delete the subnet
+for subnet in $(aws ec2 describe-subnets \
+--filters "Name=vpc-id,Values=$VPC_ID" \
+--query "Subnets[].SubnetId" \
+--output text); do
+    aws ec2 delete-subnet --subnet-id "$subnet" --output text 2>&1
+done
+
+echo -e "===================================\nDeleting attached route tables..."
+
+# Delete the route table
+for rt in $(aws ec2 describe-route-tables \
+--filters "Name=vpc-id,Values=$VPC_ID" \
+--query "RouteTables[].RouteTableId" \
+--output text); do
+    aws ec2 delete-route-table --route-table-id "$rt" --output text 2>&1
+done
+
+
+
+echo -e "===================================\nDeleting the security groups..."
+# delete any security groups attached
+for sg in $(aws ec2 describe-security-groups \
+--filters "Name=vpc-id,Values=$VPC_ID" \
+--query "SecurityGroups[].GroupId" \
+--output text); do
+    aws ec2 delete-security-group --group-id "$sg" --output text 2>&1
+done
+
+echo -e "===================================\nDeleting the VPC..."
 # Delete the VPC
 OUTPUT=$(aws ec2 delete-vpc --vpc-id $VPC_ID --output text 2>&1)
 
