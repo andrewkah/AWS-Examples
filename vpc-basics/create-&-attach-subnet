@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+echo "Create Subnet for VPC $1..."
+
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli command is required"
+    exit 1
+fi
+
