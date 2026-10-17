@@ -68,9 +68,9 @@ if [ $STATUS -eq 0 ]; then
     if [ $STATUS_3 -eq 0 ]; then
         echo "Subnet created successfully, Subnet Id:$SUBNET_OUTPUT"
 
-        echo -e "===================================\nAuto assign IPv4 addresses..."
-        # Enable the IPv4 address auto assign
-        IPV4_AUTO=$(aws ec2 modify-subnet-attribute --subnet-id $SUBNET_OUTPUT --map-public-ip-on-launch)
+        # echo -e "===================================\nAuto assign IPv4 addresses, This has costs to it..."
+        # # Enable the IPv4 address auto assign
+        # IPV4_AUTO=$(aws ec2 modify-subnet-attribute --subnet-id $SUBNET_OUTPUT --map-public-ip-on-launch)
 
         echo -e "===================================\nAttaching the default route table to the subnet..."
         # Retrive the default route table ID
