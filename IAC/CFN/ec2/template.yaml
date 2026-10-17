@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample CloudFormation template for s3 buckets
+Parameters:
+  ImageId:
+    Type: String
+    Default: ami-0f8f318086d72b1b4
+  SubnetId:
+    Type: String
+    Default: subnet-0a91576a471f22c6d
+  VpcId:
+    Type: String
+    Default: vpc-07150b0a186e9563c
+Resources:
+  SSMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref SSMRole
+
+  MyEC2Instance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref ImageId
+      InstanceType: t3.micro
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      # SubnetId: !Ref SubnetId
+      # SecurityGroupIds:
+      #   - !Ref InstanceSecurityGroup
+      NetworkInterfaces:
+        - 
+          DeviceIndex: 0
+          SubnetId: !Ref SubnetId
+          AssociatePublicIpAddress: true  # Thie has a cost attached to it
+          GroupSet:
+            - !Ref InstanceSecurityGroup
+          DeleteOnTermination: true
+      UserData: 
+        Fn::Base64: |
+          #!/bin/bash
+          yum update
+          yum install -y httpd
+          systemctl enable --now httpd
+          echo "<html><body><h1 style=\"color: blue\">Hello from $(hostname -f)</h1></body></html>" > /var/www/html/index.html
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Enable SSH access on port 22'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: "-1"
+          CidrIp: '0.0.0.0/0'
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'

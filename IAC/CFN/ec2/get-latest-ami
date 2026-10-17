@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+echo "Retrieving the latest EC2 AMI Image id..."
+
+# Check if the command is present
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli not found"
+    exit 1
+fi
+
+# Get the latest AMI image id
+IMAGE_ID=$(aws ec2 describe-images --owners amazon --filters "Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2" --query "sort_by(Images, &CreationDate)[-1].[ImageId]" --output text 2>&1)
+echo "Latest AMI image id is: $IMAGE_ID"
