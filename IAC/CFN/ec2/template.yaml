@@ -6,10 +6,10 @@ Parameters:
     Default: ami-0f8f318086d72b1b4
   SubnetId:
     Type: String
-    Default: subnet-0a91576a471f22c6d
+    Default: subnet-0e460528c35df6c43
   VpcId:
     Type: String
-    Default: vpc-07150b0a186e9563c
+    Default: vpc-057054df333e46f02
 Resources:
   SSMRole:
     Type: AWS::IAM::Role
