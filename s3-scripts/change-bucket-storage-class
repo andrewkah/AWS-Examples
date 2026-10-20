@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+echo "Changing the storage class of a bucket..."
+
+if ! command -v aws &> /dev/null
+then
+    echo "aws cli command is required"
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null
+then
+    echo "jq command is required"
+    exit 1
+fi
+
+while [[ -z "$BUCKET_NAME" ]]; do
+    read -rp "Please provide a bucket name: " BUCKET_NAME
+done
+# List the storage classes
+echo "Listing available storage classes:"
+echo "1. STANDARD"
+echo "2. STANDARD_IA"
+echo "3. ONEZONE_IA"
+echo "4. INTELLIGENT_TIERING"
+echo "5. GLACIER_IR"
+echo "6. GLACIER"
+echo "7. DEEP_ARCHIVE"
+
+read -rp "Choose a storage class number (1-7): " CHOICE
+
+case $CHOICE in
+    1) STORAGE_CLASS="STANDARD" ;;
+    2) STORAGE_CLASS="STANDARD_IA" ;;
+    3) STORAGE_CLASS="ONEZONE_IA" ;;
+    4) STORAGE_CLASS="INTELLIGENT_TIERING" ;;
+    5) STORAGE_CLASS="GLACIER_IR" ;;
+    6) STORAGE_CLASS="GLACIER" ;;
+    7) STORAGE_CLASS="DEEP_ARCHIVE" ;;
+    *) 
+        echo "Invalid choice. Exiting."
+        exit 1
+        ;;
+esac
+
+echo "Selected Storage Class: $STORAGE_CLASS"
+
+# 3. Target Object Key (Optional: prompt user or apply to all objects)
+read -rp "Enter the specific object key (or leave blank to update ALL objects in the bucket): " OBJECT_KEY
+
+if [[ -n "$OBJECT_KEY" ]]; then
+    # Update a single object
+    echo "Updating storage class for single object: $OBJECT_KEY..."
+    OUTPUT=$(aws s3 cp "s3://$BUCKET_NAME/$OBJECT_KEY" "s3://$BUCKET_NAME/$OBJECT_KEY" --storage-class "$STORAGE_CLASS" 2>&1)
+else
+    # Loop through and update all objects in the bucket
+    echo "Updating storage class for ALL objects in bucket $BUCKET_NAME..."
+    
+    # List objects recursively and use awk to extract the key name, preserving spaces
+    aws s3 ls "s3://$BUCKET_NAME/" --recursive | awk '{$1=$2=$3=""; sub(/^[ \t]+/, ""); print}' | while IFS= read -r KEY; do
+        # Skip empty lines
+        [[ -z "$KEY" ]] && continue
+        
+        echo "Processing: $KEY"
+        aws s3 cp "s3://$BUCKET_NAME/$KEY" "s3://$BUCKET_NAME/$KEY" --storage-class "$STORAGE_CLASS" > /dev/null
+    done
+    OUTPUT="All objects processed successfully."
+fi
+
+if [ $? -eq 0 ]; then
+    echo "$OUTPUT"
+    echo "Bucket $BUCKET_NAME objects are now updated to storage type $STORAGE_CLASS"
+    exit 0
+else
+    echo "An error occurred while changing the storage class."
+    exit 1
+fi
